@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="démineurGrpB5.cpp">
+    <ClCompile Include="démineurGrpB5.c">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
