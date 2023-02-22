@@ -10,26 +10,37 @@
 typedef char tab[N][N];
 
 void Ini(tab, tab);
+//______________________________________________________________________________________________________
+void niveauDeJeu(tab, tab);
+//______________________________________________________________________________________________________
 void AfficheT(tab);
 void placeM(tab);
 void jeu(tab, tab);
 void CBM(tab, tab, int, int);
+void ClearInput();
+char getInputChar(const char* message, const char* authorizedCharacter, int length);
 
 int main() {
 	tab TM; // Tableau des mines
 	tab TJ; // Tableau de jeu
+	char ON = 'o';
+	while (ON == 'o') {
+		srand((unsigned int)time(NULL));
 
-	srand((unsigned int)time(NULL));
+		Ini(TM, TJ);
 
-	Ini(TM, TJ);
+		//niveauDeJeu(TM, TJ);
 
-	placeM(TM); // Placement des mines (M)
+		placeM(TM); // Placement des mines (M)
 
-	jeu(TM, TJ);
+		jeu(TM, TJ);
 
+		ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non", "on", 2);
+
+		system("cls");
+	}
 	return 0;
 }
-
 void Ini(tab TM, tab TJ) {
 	int i, j;
 
@@ -82,10 +93,68 @@ void placeM(tab TM) {
 		}
 	}
 }
+//______________________________________________________________________________________________________
+void niveauDeJeu(tab TM, tab TJ) {
+	int niveau;
+	do {
+		printf("Quel niveau souhaitez-vous ? [1, 2, 3]");
+		scanf_s("%d", &niveau);
+	} while (niveau < 1 || niveau > 3);
+
+	switch (niveau) {
+	case 1:
+		M == 4;
+		N == 5;
+		break;
+	case 2:
+		M == 8;
+		N == 7;
+		break;
+	case 3:
+		M == 25;
+		N == 10;
+		break;
+	}
+}
+//______________________________________________________________________________________________________
 
 void ClearInput()
 {
 	while (getchar() != '\n');
+}
+
+int getInputInt(const char* message, int min, int max)
+{
+	int value;
+	int error;
+	do {
+		printf("%s", message);
+		error = scanf_s("%d", &value);
+		ClearInput();
+	} while ((error == 0) || (value < min) || (value >= max));
+	return value;
+}
+
+char getInputChar(const char* message, const char* authorizedCharacter, int length)
+{
+	int error_scan;
+	int error_char;
+	char caract;
+
+	do {
+		printf("%s\n", message);
+		error_scan = scanf_s("%c", &caract);
+		ClearInput();
+
+		error_char = 0;
+		for (int i = 0; i < length; ++i) {
+			if (caract == authorizedCharacter[i]) {
+				error_char = 1;
+			}
+		}
+	} while ((error_scan == 0) || (error_char == 0));
+
+	return caract;
 }
 
 void jeu(tab TM, tab TJ) {
@@ -100,19 +169,9 @@ void jeu(tab TM, tab TJ) {
 	while ((perdu == -1) && (compteur != nbcasesm)) {
 		AfficheT(TJ);
 
-		int error;
-		do {
-			printf("Ligne : ");
-			error = scanf_s("%d", &CL);
-			ClearInput();
-		} while ((error == 0) || (CL < 0) || (CL >= N));
+		CL = getInputInt("ligne : ", 0, N);
 
-
-		do {
-			printf("Colonne : ");
-			error = scanf_s("%d", &CC);
-			ClearInput();
-		} while ((error == 0) || (CC < 0) || (CC >= N));
+		CC = getInputInt("Colonne : ", 0, N);
 
 		printf("\n");
 		system("cls");
@@ -134,6 +193,7 @@ void jeu(tab TM, tab TJ) {
 
 	if (perdu == 1) {
 		printf("Game Over\n\n");
+
 	}
 	else {
 		printf("Vous avez gagné!\n\n");
