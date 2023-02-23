@@ -9,14 +9,17 @@
 
 typedef char tab[N][N];
 
-void Ini(tab, tab);
+int a = 3;
+void func(a);
+
+
+void Ini(char a[N][N], char c[N][N]);
 //______________________________________________________________________________________________________
 void niveauDeJeu(tab, tab);
-//______________________________________________________________________________________________________
 void AfficheT(tab);
 void placeM(tab);
 void jeu(tab, tab);
-void CBM(tab, tab, int, int);
+char CBM(tab, tab, int, int);
 void ClearInput();
 char getInputChar(const char* message, const char* authorizedCharacter, int length);
 
@@ -29,7 +32,7 @@ int main() {
 
 		Ini(TM, TJ);
 
-		//niveauDeJeu(TM, TJ);
+		niveauDeJeu(TM, TJ);
 
 		placeM(TM); // Placement des mines (M)
 
@@ -38,6 +41,9 @@ int main() {
 		ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non", "on", 2);
 
 		system("cls");
+	}
+	if (ON == 'n') {
+		printf("\nReessayer une autre fois\n");
 	}
 	return 0;
 }
@@ -96,22 +102,19 @@ void placeM(tab TM) {
 //______________________________________________________________________________________________________
 void niveauDeJeu(tab TM, tab TJ) {
 	int niveau;
-	do {
-		printf("Quel niveau souhaitez-vous ? [1, 2, 3]");
-		scanf_s("%d", &niveau);
-	} while (niveau < 1 || niveau > 3);
+	niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
 
 	switch (niveau) {
 	case 1:
-		M == 4;
+		MINE == 4;
 		N == 5;
 		break;
 	case 2:
-		M == 8;
+		MINE == 8;
 		N == 7;
 		break;
 	case 3:
-		M == 25;
+		MINE == 25;
 		N == 10;
 		break;
 	}
@@ -158,6 +161,7 @@ char getInputChar(const char* message, const char* authorizedCharacter, int leng
 }
 
 void jeu(tab TM, tab TJ) {
+	char* result;
 	int CL;
 	int CC;
 	int perdu = -1;
@@ -185,8 +189,15 @@ void jeu(tab TM, tab TJ) {
 				printf("Vous avez deja rentre cette valeur.\n\n");
 			}
 			else {
-				CBM(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
+				result = CBM(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
 				compteur++; // Accrémentation du compteur de case
+				if (result == '0') {
+					CBM(TM, TJ, CL, CC + 1);
+					CBM(TM, TJ, CL + 1, CC);
+					CBM(TM, TJ, CL + 1, CC + 1);
+					CBM(TM, TJ, CL, CC - 1);
+					CBM(TM, TJ, CL + 1, CC + 1);
+				}
 			}
 		}
 	}
@@ -196,10 +207,18 @@ void jeu(tab TM, tab TJ) {
 
 	}
 	else {
-		printf("Vous avez gagné!\n\n");
+		if (compteur == nbcasesm)
+		{
+			printf("Vous avez gagne!\n\n");
+		}
 	}
 }
-void CBM(tab T, tab TJ, int i, int j) {
+
+int getMineArround(tab T)
+{
+}
+
+char CBM(tab T, tab TJ, int i, int j) {
 	int c = 0;
 
 	if ((i == N - 1) && (j == N - 1)) { // Case "En bas à droite"
@@ -215,16 +234,16 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if ((i == 0) && (j == N - 1)) { // Case "En haut à droite"
@@ -240,16 +259,16 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if ((i == 0) && (j == 0)) { // Case "En haut à gauche"
@@ -265,16 +284,16 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if ((i == N - 1) && (j == 0)) { // Case "En bas à gauche"
@@ -290,16 +309,16 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if (i == 0) { // Ligne du haut
@@ -321,22 +340,22 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		case 4:
 			TJ[i][j] = '4';
-			break;
+			return TJ[i][j];
 		case 5:
 			TJ[i][j] = '5';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if (j == 0) { // Colonne de gauche
@@ -358,22 +377,22 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		case 4:
 			TJ[i][j] = '4';
-			break;
+			return TJ[i][j];
 		case 5:
 			TJ[i][j] = '5';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if (i == N - 1) { // Ligne du bas
@@ -395,22 +414,22 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		case 4:
 			TJ[i][j] = '4';
-			break;
+			return TJ[i][j];
 		case 5:
 			TJ[i][j] = '5';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else if (j == N - 1) { // Colonne de droite
@@ -432,22 +451,22 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		case 4:
 			TJ[i][j] = '4';
-			break;
+			return TJ[i][j];
 		case 5:
 			TJ[i][j] = '5';
-			break;
+			return TJ[i][j];
 		}
 	}
 	else { // N'importe où ailleurs
@@ -478,31 +497,31 @@ void CBM(tab T, tab TJ, int i, int j) {
 		switch (c) { // Attribution de la valeur
 		case 0:
 			TJ[i][j] = '0';
-			break;
+			return TJ[i][j];
 		case 1:
 			TJ[i][j] = '1';
-			break;
+			return TJ[i][j];
 		case 2:
 			TJ[i][j] = '2';
-			break;
+			return TJ[i][j];
 		case 3:
 			TJ[i][j] = '3';
-			break;
+			return TJ[i][j];
 		case 4:
 			TJ[i][j] = '4';
-			break;
+			return TJ[i][j];
 		case 5:
 			TJ[i][j] = '5';
-			break;
+			return TJ[i][j];
 		case 6:
 			TJ[i][j] = '6';
-			break;
+			return TJ[i][j];
 		case 7:
 			TJ[i][j] = '7';
-			break;
+			return TJ[i][j];
 		case 8:
 			TJ[i][j] = '8';
-			break;
+			return TJ[i][j];
 		}
 	}
 }
