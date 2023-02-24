@@ -3,18 +3,18 @@
 #include <time.h>
 
 #define N 10
-#define MINE 20
+
 #define X 'X' // Case non découverte
 #define M 'M' // Case minée
 
 typedef char tab[N][N];
 
 int a = 3;
+int MINE = 20
 void func(a);
 
 
 void Ini(char a[N][N], char c[N][N]);
-//______________________________________________________________________________________________________
 void niveauDeJeu(tab, tab);
 void AfficheT(tab);
 void placeM(tab);
@@ -22,6 +22,7 @@ void jeu(tab, tab);
 char CBM(tab, tab, int, int);
 void ClearInput();
 char getInputChar(const char* message, const char* authorizedCharacter, int length);
+int getInputInt(const char* message, int min, int max);
 
 int main() {
 	tab TM; // Tableau des mines
@@ -102,20 +103,21 @@ void placeM(tab TM) {
 //______________________________________________________________________________________________________
 void niveauDeJeu(tab TM, tab TJ) {
 	int niveau;
-	niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
+	int MINE = 0
+		niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
 
 	switch (niveau) {
 	case 1:
-		MINE == 4;
-		N == 5;
+		MINE = 4;
+		printf("La difficulté est de %d et il y as %d mines dans tout le tableaux\n" niveau, MINE);
 		break;
 	case 2:
-		MINE == 8;
-		N == 7;
+		MINE = 8;
+		printf("La difficulté est de %d et il y as %d mines dans tout le tableaux\n" niveau, MINE);
 		break;
 	case 3:
-		MINE == 25;
-		N == 10;
+		MINE = 25;
+		printf("La difficulté est de %d et il y as %d mines dans tout le tableaux\n" niveau, MINE);
 		break;
 	}
 }
@@ -191,13 +193,6 @@ void jeu(tab TM, tab TJ) {
 			else {
 				result = CBM(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
 				compteur++; // Accrémentation du compteur de case
-				if (result == '0') {
-					CBM(TM, TJ, CL, CC + 1);
-					CBM(TM, TJ, CL + 1, CC);
-					CBM(TM, TJ, CL + 1, CC + 1);
-					CBM(TM, TJ, CL, CC - 1);
-					CBM(TM, TJ, CL + 1, CC + 1);
-				}
 			}
 		}
 	}
@@ -214,9 +209,37 @@ void jeu(tab TM, tab TJ) {
 	}
 }
 
-int getMineArround(tab T)
+int isMine(tab T, int i, int j)
 {
+	if (i < 0 || i >= N)
+		return 0;
+
+	if (j < 0 || j >= M)
+		return 0;
+
+	if (T[i][j] != 'M')
+		return 0;
+
+	return 1;
 }
+int getMineArround(tab T, int i, int j)
+{
+	int mineCount = 0;
+
+	mineCount += isMine(T, i - 1, j);
+	mineCount += isMine(T, i + 1, j);
+	mineCount += isMine(T, i - 1, j - 1);
+	mineCount += isMine(T, i - 1, j + 1);
+	mineCount += isMine(T, i + 1, j - 1);
+	mineCount += isMine(T, i + 1, j + 1);
+	mineCount += isMine(T, i, j - 1);
+	mineCount += isMine(T, i, j + 1);
+
+
+
+	return mineCount;
+}
+
 
 char CBM(tab T, tab TJ, int i, int j) {
 	int c = 0;
