@@ -10,6 +10,7 @@ typedef char tab[N][N];
 
 int a = 3;
 int MINE = 0;
+int cpt = 0;
 void func(a);
 
 
@@ -41,6 +42,7 @@ int main() {
 		jeu(TM, TJ);
 
 		ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non", "on", 2);
+		cpt = 0;
 
 		system("cls");
 	}
@@ -86,56 +88,7 @@ void AfficheT(tab T) {
 void placeM(tab TM) {
 	int i, j;
 	int cm;
-	//ça fonctionne pas
-	TM[5][5] = M;
-	TM[5][6] = M;
-	TM[6][5] = M;
-	TM[6][6] = M;
-	//ça fonctione quand c entouré
-	TM[5][5] = M;
-	TM[5][6] = M;
-	TM[6][5] = M;
-	TM[6][6] = M;
-	TM[0][0] = M;
-	TM[0][1] = M;
-	TM[0][2] = M;
-	TM[0][3] = M;
-	TM[0][4] = M;
-	TM[0][5] = M;
-	TM[0][6] = M;
-	TM[0][7] = M;
-	TM[0][8] = M;
-	TM[0][9] = M;
-	TM[1][0] = M;
-	TM[1][9] = M;
-	TM[2][0] = M;
-	TM[2][9] = M;
-	TM[3][0] = M;
-	TM[3][9] = M;
-	TM[4][0] = M;
-	TM[4][9] = M;
-	TM[5][0] = M;
-	TM[5][9] = M;
-	TM[6][0] = M;
-	TM[6][9] = M;
-	TM[7][0] = M;
-	TM[7][9] = M;
-	TM[8][0] = M;
-	TM[8][9] = M;
-	TM[9][0] = M;
-	TM[9][1] = M;
-	TM[9][2] = M;
-	TM[9][3] = M;
-	TM[9][4] = M;
-	TM[9][5] = M;
-	TM[9][6] = M;
-	TM[9][7] = M;
-	TM[9][8] = M;
-	TM[9][9] = M;
-
-
-	//printf("%c", &TM[3][4]);
-	/*for (cm = 0; cm < MINE; cm++) {
+	for (cm = 0; cm < MINE; cm++) {
 		i = rand() % N;
 		j = rand() % N;
 		if (TM[i][j] == M) {
@@ -148,7 +101,7 @@ void placeM(tab TM) {
 		else {
 			TM[i][j] = M;
 		}
-	}*/
+	}
 }
 
 void niveauDeJeu(tab TM, tab TJ) {
@@ -195,7 +148,7 @@ char getInputChar(const char* message, const char* authorizedCharacter, int leng
 	char caract;
 
 	do {
-		printf("%s\n", message);
+		printf("%s", message);
 		error_scan = scanf_s("%c", &caract);
 		ClearInput();
 
@@ -213,49 +166,73 @@ char getInputChar(const char* message, const char* authorizedCharacter, int leng
 void jeu(tab TM, tab TJ) {
 	int CL;
 	int CC;
+	char CD = 'c';
 	int perdu = -1;
-	int compteur = 0; // Pour compter combien de cases ont été découverte
 	int nbcasesm = N * N - MINE; // Nombre de cases sans mine
 
 	printf("\nJeu du demineur\n\n");
 
-	while ((perdu == -1) && (compteur != nbcasesm)) {
+	while ((perdu == -1) ) {
 		AfficheT(TJ);
-		AfficheT(TM);
+		//AfficheT(TM);
+		CD = getInputChar("Voulez vous jouer : c ou poser un drapeau : d ou retirer un drapeau : r -> ", "cdr", 3);
+		if (CD == 'd') {
+			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
 
-		CL = getInputInt("ligne : ", 0, N);
+			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
+			if (TJ[CL][CC] == 'X'){ 
+				TJ[CL][CC] = 80; 
+			}
+			
+			printf("\n");
+			system("cls");
 
-		CC = getInputInt("Colonne : ", 0, N);
-
-		reavealCase(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
-
-		printf("\n");
-		system("cls");
-
-		if (TM[CL][CC] == M) {
-			perdu = 1; // VOUS AVEZ PERDU!
-			printf("C'est une mine :O\n\n");
-			break;
+			if (TJ[CL][CC] != X) {
+				printf("Vous avez deja rentre cette valeur.\n\n");
+			}
 		}
+		if (CD == 'r') {
+			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
 
-		if (TJ[CL][CC] != X) {
-			printf("Vous avez deja rentre cette valeur.\n\n");
-			continue;
+			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
+			if (TJ[CL][CC] == 80) {
+				TJ[CL][CC] = 88;
+			}
+
+
+			printf("\n");
+			system("cls");
 		}
+		if (CD == 'c') {
+			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
 
-		compteur++; // Accrémentation du compteur de case
+			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
+			printf("\n");
+			system("cls");
+			if (TJ[CL][CC] != X && TJ[CL][CC] != 80) {
+				printf("Vous avez deja rentre cette valeur.\n\n");
+				continue;
+			}
+			
+			if (TM[CL][CC] == M) {
+				perdu = 1; // VOUS AVEZ PERDU!
+				printf("C'est une mine :O\n\n");
+				break;
+			}
+			reavealCase(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
+			if (cpt == nbcasesm)
+			{
+				perdu = 0;
+				printf("Vous avez gagne!\n\n");
+			}
+		}
 	}
 
 	if (perdu == 1) {
 		printf("Game Over\n\n");
 
 	}
-	else {
-		if (compteur == nbcasesm)
-		{
-			printf("Vous avez gagne!\n\n");
-		}
-	}
+
 }
 
 int isMine(tab T, int i, int j)
@@ -288,32 +265,29 @@ int getMineArround(tab TM,tab TJ, int i, int j)
 
 void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour donc detruire autour du 0
 {
+	if (i < 0 || i >= N)
+		return;
+
+	if (j < 0 || j >= N)
+		return;
+
+	if (TJ[i][j] != 'X')
+		return;
+
+	cpt++;
 	TJ[i][j] = getMineArround(TM, TJ, i, j);
-	
-	if (TJ[i][j] == 48) {
-		if (TJ[i - 1][j - 1] == 'X') {
-			reavealCase(TM, TJ, i - 1, j - 1);
-		}
-		if (TJ[i - 1][j] == 'X') {
-			reavealCase(TM, TJ, i + 1, j);
-		}
-		if (TJ[i - 1][j + 1] == 'X') {
-			reavealCase(TM, TJ, i - 1, j + 1);
-		}
-		if (TJ[i][j - 1] == 'X') {
-			reavealCase(TM, TJ, i, j - 1);
-		}
-		if (TJ[i][j + 1] == 'X') {
-			reavealCase(TM, TJ, i, j + 1);
-		}
-		if (TJ[i + 1][j - 1] == 'X') {
-			reavealCase(TM, TJ, i + 1, j - 1);
-		}
-		if (TJ[i + 1][j] == 'X') {
-			reavealCase(TM, TJ, i+1, j);
-		}
-		if (TJ[i + 1][j + 1] == 'X') {
-			reavealCase(TM, TJ, i+1, j + 1);
-		}
-	}
+	if (TJ[i][j] != 48)
+		return;
+
+	reavealCase(TM, TJ, i - 1, j - 1);
+	reavealCase(TM, TJ, i - 1, j);
+	reavealCase(TM, TJ, i - 1, j + 1);
+	 
+	reavealCase(TM, TJ, i, j + 1);
+	reavealCase(TM, TJ, i, j - 1);
+
+	reavealCase(TM, TJ, i + 1, j - 1);
+	reavealCase(TM, TJ, i + 1, j);
+	reavealCase(TM, TJ, i + 1, j + 1);
 }
+
