@@ -290,4 +290,3 @@ void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour don
 	reavealCase(TM, TJ, i + 1, j);
 	reavealCase(TM, TJ, i + 1, j + 1);
 }
-
