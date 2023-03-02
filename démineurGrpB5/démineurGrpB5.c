@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include "SDL.h"
 
 #define N 10
 #define X 88 // Case non découverte
 #define M 77 // Case minée
+
 
 typedef char tab[N][N];
 
@@ -26,8 +28,46 @@ int isMine(tab T, int i, int j);
 int getMineArround(tab TM,tab TJ, int i, int j);
 void reavealCase(tab TM, tab TJ, int i, int j);
 
-int main() {
-	tab TM; // Tableau des mines
+
+
+int main() 
+{
+	SDL_Window* window = NULL;
+	SDL_Renderer* renderer = NULL;
+	int statut = EXIT_FAILURE;
+
+	if (0 != SDL_Init(SDL_INIT_VIDEO))
+	{
+		fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
+		goto Quit;
+	}
+	window = SDL_CreateWindow("SDL2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		640, 480, SDL_WINDOW_SHOWN);
+	if (NULL == window)
+	{
+		fprintf(stderr, "Erreur SDL_CreateWindow : %s", SDL_GetError());
+		goto Quit;
+	}
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (NULL == renderer)
+	{
+		fprintf(stderr, "Erreur SDL_CreateRenderer : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	statut = EXIT_SUCCESS;
+	SDL_DestroyRenderer(renderer);
+	SDL_Delay(3000);
+	SDL_DestroyWindow(window);
+Quit:
+	if (NULL != renderer)
+		SDL_DestroyRenderer(renderer);
+	if (NULL != window)
+		SDL_DestroyWindow(window);
+	SDL_Quit();
+return statut;
+
+	/*tab TM; // Tableau des mines
 	tab TJ; // Tableau de jeu
 	char ON = 'o';
 	while (ON == 'o') {
@@ -41,7 +81,7 @@ int main() {
 
 		jeu(TM, TJ);
 
-		ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non", "on", 2);
+		ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non \n -> ", "on", 2);
 		cpt = 0;
 
 		system("cls");
@@ -49,7 +89,7 @@ int main() {
 	if (ON == 'n') {
 		printf("\nReessayer une autre fois\n");
 	}
-	return 0;
+	return 0;*/
 
 }
 void Ini(tab TM, tab TJ) {
