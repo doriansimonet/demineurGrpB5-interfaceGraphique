@@ -25,24 +25,44 @@ void ClearInput();
 char getInputChar(const char* message, const char* authorizedCharacter, int length);
 int getInputInt(const char* message, int min, int max);
 int isMine(tab T, int i, int j);
-int getMineArround(tab TM,tab TJ, int i, int j);
+int getMineArround(tab TM, tab TJ, int i, int j);
 void reavealCase(tab TM, tab TJ, int i, int j);
 
 
 
-int main() 
+SDL_bool test(SDL_Point point, SDL_Rect rect)
+{
+	if (point.x >= rect.x && point.x <= (rect.x + rect.w) &&
+		point.y >= rect.y && point.y <= (rect.y + rect.h))
+		return SDL_TRUE;
+	else
+		return SDL_FALSE;
+}
+
+int setWindowColor(SDL_Renderer* renderer, SDL_Color color)
+{
+	if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) < 0)
+		return -1;
+	if (SDL_RenderClear(renderer) < 0)
+		return -1;
+	return 0;
+}
+
+int main()
 {
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
 	int statut = EXIT_FAILURE;
+	SDL_Color orange = { 255, 127, 40, 255 };
 
+	/* Initialisation, création de la fenêtre et du renderer. */
 	if (0 != SDL_Init(SDL_INIT_VIDEO))
 	{
 		fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
 		goto Quit;
 	}
 	window = SDL_CreateWindow("SDL2", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		640, 480, SDL_WINDOW_SHOWN);
+		500, 500, SDL_WINDOW_SHOWN);
 	if (NULL == window)
 	{
 		fprintf(stderr, "Erreur SDL_CreateWindow : %s", SDL_GetError());
@@ -55,17 +75,37 @@ int main()
 		goto Quit;
 	}
 
-	statut = EXIT_SUCCESS;
-	SDL_DestroyRenderer(renderer);
+	/* C’est à partir de maintenant que ça se passe. */
+	for (int i = 0; i < 500; i += 50) {
+		for (int j = 0; j < 500; j += 50) {
+			int brique = i - j;
+			if (brique == 50 || brique == -50 || brique == 150 || brique == -150 || brique == 250 || brique == -250 || brique == 350 || brique == -350 || brique == 450 || brique == -450) {
+				SDL_SetRenderDrawColor(renderer, 120, 255, 120, 255);
+			}
+			else {
+				SDL_SetRenderDrawColor(renderer, 100, 200, 0, 255);
+			}
+			SDL_Rect a = { i,j,50,50 };
+			SDL_RenderFillRect(renderer, &a);
+
+		}
+	}
+
+
+	SDL_RenderPresent(renderer);
+
 	SDL_Delay(3000);
-	SDL_DestroyWindow(window);
+
+	statut = EXIT_SUCCESS;
+
 Quit:
 	if (NULL != renderer)
 		SDL_DestroyRenderer(renderer);
 	if (NULL != window)
 		SDL_DestroyWindow(window);
 	SDL_Quit();
-return statut;
+	return statut;
+
 
 	/*tab TM; // Tableau des mines
 	tab TJ; // Tableau de jeu
@@ -146,20 +186,20 @@ void placeM(tab TM) {
 
 void niveauDeJeu(tab TM, tab TJ) {
 	int niveau;
-		niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
+	niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
 
 	switch (niveau) {
 	case 1:
 		MINE = 10;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n" , niveau, MINE);
+		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
 		break;
 	case 2:
 		MINE = 20;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n" , niveau, MINE);
+		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
 		break;
 	case 3:
 		MINE = 30;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n" , niveau, MINE);
+		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
 		break;
 	}
 }
@@ -212,7 +252,7 @@ void jeu(tab TM, tab TJ) {
 
 	printf("\nJeu du demineur\n\n");
 
-	while ((perdu == -1) ) {
+	while ((perdu == -1)) {
 		AfficheT(TJ);
 		//AfficheT(TM);
 		CD = getInputChar("Voulez vous jouer : c ou poser un drapeau : d ou retirer un drapeau : r -> ", "cdr", 3);
@@ -220,10 +260,10 @@ void jeu(tab TM, tab TJ) {
 			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
 
 			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
-			if (TJ[CL][CC] == 'X'){ 
-				TJ[CL][CC] = 80; 
+			if (TJ[CL][CC] == 'X') {
+				TJ[CL][CC] = 80;
 			}
-			
+
 			printf("\n");
 			system("cls");
 
@@ -253,7 +293,7 @@ void jeu(tab TM, tab TJ) {
 				printf("Vous avez deja rentre cette valeur.\n\n");
 				continue;
 			}
-			
+
 			if (TM[CL][CC] == M) {
 				perdu = 1; // VOUS AVEZ PERDU!
 				printf("C'est une mine :O\n\n");
@@ -288,7 +328,7 @@ int isMine(tab T, int i, int j)
 
 	return 1;
 }
-int getMineArround(tab TM,tab TJ, int i, int j)
+int getMineArround(tab TM, tab TJ, int i, int j)
 {
 	int mineCount = 48;
 
@@ -322,7 +362,7 @@ void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour don
 	reavealCase(TM, TJ, i - 1, j - 1);
 	reavealCase(TM, TJ, i - 1, j);
 	reavealCase(TM, TJ, i - 1, j + 1);
-	 
+
 	reavealCase(TM, TJ, i, j + 1);
 	reavealCase(TM, TJ, i, j - 1);
 
