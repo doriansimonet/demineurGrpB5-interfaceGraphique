@@ -1,7 +1,7 @@
- #include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <SDL.h>
+#include "SDL.h"
 
 #define N 10
 #define X 88 // Case non découverte
@@ -52,9 +52,8 @@ int main()
 {
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
-	SDL_Texture* texture_damier = NULL;
-	SDL_Texture* texture_image, *texture_surface = NULL;
-	SDL_Surface* surface_un = SDL_LoadBMP("src/Pixil-1.bmp");
+	SDL_Texture* texture = NULL;
+	SDL_Surface* tmp = SDL_LoadBMP("ImageBmp.bmp");
 	int statut = EXIT_FAILURE;
 
 	/* Initialisation, création de la fenêtre et du renderer. */
@@ -76,36 +75,26 @@ int main()
 		fprintf(stderr, "Erreur SDL_CreateRenderer : %s", SDL_GetError());
 		goto Quit;
 	}
-	texture_damier = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET, 50, 50);
-	if (NULL == texture_damier)
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET, 50, 50);
+	if (NULL == texture)
 	{
 		fprintf(stderr, "Erreur SDL_CreateTexture : %s", SDL_GetError());
 		goto Quit;
 	}
-
-	if (NULL == surface_un)
+	if (NULL == tmp)
 	{
 		fprintf(stderr, "Erreur SDL_LoadBMP : %s", SDL_GetError());
 		goto Quit;
 	}
-	texture_image = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 50, 50);
-	if (NULL == texture_image)
-	{
-		fprintf(stderr, "Erreur SDL_CreateTexture : %s", SDL_GetError());
-		goto Quit;
-	}
-	texture_surface = SDL_CreateTextureFromSurface(renderer, surface_un);
-	if (NULL == texture_image)
+	texture = SDL_CreateTextureFromSurface(renderer, tmp);
+	SDL_FreeSurface(tmp); /* On libère la surface, on n’en a plus besoin */
+	if (NULL == texture)
 	{
 		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
 		goto Quit;
 	}
-	SDL_Rect img={ 50,50,50,50 };
-	SDL_RenderCopy(renderer, texture_surface, NULL, &img); /* On copie ts sur texture */
-	SDL_DestroyTexture(texture_surface);
-	SDL_FreeSurface(surface_un);
-	
 
+	/* C’est à partir de maintenant que ça se passe. */
 	for (int i = 0; i < 500; i += 50) {
 		for (int j = 0; j < 500; j += 50) {
 			int brique = i - j;
@@ -163,7 +152,7 @@ int main()
 				for (int j = 0; j < 500; j += 50) {
 					if (i < x && x<i+50 && j < y && y<j+50) {
 						SDL_Rect dst = { i, j, 50, 50 };
-						SDL_SetRenderTarget(renderer, texture_damier);
+						SDL_SetRenderTarget(renderer, texture);
 						int terre = i - j;
 						if (terre < 0) {
 							terre = terre * (-1);
@@ -177,8 +166,8 @@ int main()
 						}
 						SDL_RenderClear(renderer);
 						SDL_SetRenderTarget(renderer, NULL);
-						SDL_QueryTexture(texture_damier, NULL, NULL, &dst.w, &dst.h);
-						SDL_RenderCopy(renderer, texture_damier, NULL, &dst);
+						SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
+						SDL_RenderCopy(renderer, texture, NULL, &dst);
 						SDL_RenderPresent(renderer);
 					}
 				}
@@ -193,8 +182,8 @@ int main()
 	statut = EXIT_SUCCESS;
 
 Quit:
-	if (NULL != texture_damier)
-		SDL_DestroyTexture(texture_damier);
+	if (NULL != texture)
+		SDL_DestroyTexture(texture);
 	if (NULL != renderer)
 		SDL_DestroyRenderer(renderer);
 	if (NULL != window)
