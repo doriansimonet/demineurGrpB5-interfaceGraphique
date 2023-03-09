@@ -11,7 +11,7 @@
 typedef char tab[N][N];
 
 int a = 3;
-int MINE = 10;
+int MINE = 0;
 int cpt = 0;
 void func(a);
 
@@ -21,10 +21,6 @@ void niveauDeJeu(tab, tab);
 void AfficheT(tab,tab, SDL_Renderer*, SDL_Texture*);
 void Jeu(tab, tab, SDL_Renderer*, SDL_Texture*);
 void placeM(tab);
-void jeu(tab, tab);
-void ClearInput();
-char getInputChar(const char* message, const char* authorizedCharacter, int length);
-int getInputInt(const char* message, int min, int max);
 int isMine(tab T, int i, int j);
 int getMineArround(tab TM, tab TJ, int i, int j);
 void reavealCase(tab TM, tab TJ, int i, int j);
@@ -80,6 +76,7 @@ int main()
 	int x, y;
 	int boom;
 	Uint32 boutons;
+	int nbcasesm =0;
 
 	tab TM; // Tableau des mines
 	tab TJ; // Tableau de jeu
@@ -273,29 +270,75 @@ int main()
 	tab_texture[16] = texture_win;
 	tab_texture[17] = texture_restart;
 	
-	Jeu(TM,TJ, renderer, tab_texture);
-	boom=0;
+	Jeu(TM, TJ, renderer, tab_texture);
+	boom = 2;
 	//boucle jeu
 	while (!quit)
-	{
-		
+	{		
 		SDL_WaitEvent(&event);
 		if (event.type == SDL_QUIT)
 		{
 			quit = SDL_TRUE;
 		}
-		else if (event.type == SDL_KEYDOWN)
-		{
-			if (event.key.keysym.scancode == SDL_SCANCODE_A)
-				printf("scancode A\n");
-			if (event.key.keysym.sym == SDLK_a)
-				printf("keysym A\n");
+		boutons = SDL_GetMouseState(&x, &y);
+		if (boom == 2) {
+			SDL_Rect start = { 0,0,500,500 };
+			SDL_Rect easy = { 20,300,125,125 };
+			SDL_Rect medium = { 185,300,125,125 };
+			SDL_Rect hard = { 355,300,125,125 };
+			SDL_RenderCopy(renderer, tab_texture[11], NULL, &start);
+			SDL_RenderCopy(renderer, tab_texture[13], NULL, &easy);
+			SDL_RenderCopy(renderer, tab_texture[14], NULL, &medium);
+			SDL_RenderCopy(renderer, tab_texture[15], NULL, &hard);
+			SDL_RenderPresent(renderer);
+			if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (boutons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+					if (145 > x && x > 20 && 425 > y && y > 300) {
+						MINE = 10;
+						nbcasesm = N * N - MINE;
+						Jeu(TM, TJ, renderer, tab_texture);
+						boom = 0;
+					}
+					if (300 > x && x > 185 && 425 > y && y > 300) {
+						MINE = 20;
+						nbcasesm = N * N - MINE;
+						Jeu(TM, TJ, renderer, tab_texture);
+						boom = 0;
+					}
+					if (480 > x && x > 355 && 425 > y && y > 300) {
+						MINE = 30;
+						nbcasesm = N * N - MINE;
+						Jeu(TM, TJ, renderer, tab_texture);
+						boom = 0;
+					}
+				}
+			}
 		}
-		
-		
+		if (boom == 1) {
+			if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (boutons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+					if (450 > x && x > 375 && 450 > y && y > 425)
+					{
+						quit = SDL_TRUE;
+
+					}
+					if (145 > x && x > 20 && 450 > y && y > 425)
+					{
+						boom = 2;
+						Jeu(TM, TJ, renderer, tab_texture);
+						
+					}
+				}
+			}
+		}
 		while (boom == 0) 
 		{
 			SDL_WaitEvent(&event);
+			if (event.type == SDL_QUIT)
+			{
+				quit = SDL_TRUE;
+				boom = 1;
+			}
 			SDL_PumpEvents();
 			boutons = SDL_GetMouseState(&x, &y);
 			if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -323,7 +366,6 @@ int main()
 			}
 			if (event.type == SDL_MOUSEBUTTONDOWN) {
 				if (boutons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-					printf("Clic droit à la positions %d - %d\n", x, y);
 					for (int i = 0; i < 500; i += 50) {
 						for (int j = 0; j < 500; j += 50) {
 							if (i < x && x < i + 50 && j < y && y < j + 50) {
@@ -332,18 +374,21 @@ int main()
 								reavealCase(TM, TJ, abs, ord);
 								AfficheT(TJ, TM, renderer, tab_texture);
 								if (TM[abs][ord] == M) {
-									boom ++;
+									boom = 1;
 								}
+								if (cpt == nbcasesm) {
+									boom = 1;
+									cpt = 0;
+								}
+								
 							}
 						}
 					}
 				}
 			}
+			SDL_RenderPresent(renderer);
 		}
 	}
-
-
-
 
 statut = EXIT_SUCCESS;
 // fin de focntion
@@ -355,29 +400,6 @@ Quit:
 	SDL_Quit();
 	return statut;
 }
-
-
-
-				/*char ON = 'o';
-				while (ON == 'o') {
-
-
-
-
-					niveauDeJeu(TM, TJ);
-
-
-
-					jeu(TM, TJ);
-
-					ON = getInputChar("Voulez vous rejouez ? \n o : oui  n : non \n -> ", "on", 2);
-					cpt = 0;
-
-					system("cls");
-				}
-				if (ON == 'n') {
-					printf("\nReessayer une autre fois\n");
-				}*/
 
  void Ini(tab TM ,tab TJ) {
 	int i, j;
@@ -393,10 +415,11 @@ Quit:
  void AfficheT(tab T, tab TM, SDL_Renderer* renderer, SDL_Texture** tab_texture) {
 	 int i, j;
 	 int c = 0;
+	 int nbcasesm = N * N - MINE;
 	 for (i = 0; i < 500; i += 50) {
 		 for (j = 0; j < 500; j += 50) {
 			 SDL_Rect img = { i,j,50,50 };
-			 SDL_Rect over = { 0,0,500,500 };
+			 SDL_Rect end = { 0,0,500,500 };
 			 SDL_Rect quit = { 350,400,125,125 };
 			 SDL_Rect restart = { 20,400,125,125 };
 			 int abs = i / 50;
@@ -434,39 +457,30 @@ Quit:
 			 }
 			 if (T[abs][ord] == P) {
 				 SDL_RenderCopy(renderer, tab_texture[9], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 49 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[1], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 50 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[2], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 51 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[3], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 52 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[4], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 53 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[5], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 54 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[6], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 55 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[7], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (T[abs][ord] == 56 && TM[abs][ord] != M) {
 				 SDL_RenderCopy(renderer, tab_texture[8], NULL, &img);
-				 SDL_RenderPresent(renderer);
 			 }
 			 if (TM[abs][ord] == M && T[abs][ord] != X && T[abs][ord] != P) {
 				 for (int i = 0; i < 500; i+=50) {
@@ -477,20 +491,26 @@ Quit:
 						 if (TM[absM][ordM] == M) {
 							 T[absM][ordM] = M;
 							 SDL_RenderCopy(renderer, tab_texture[0], NULL, &mine);
-							 SDL_RenderCopy(renderer, tab_texture[10], NULL, &over);
-							 SDL_RenderCopy(renderer, tab_texture[12], NULL, &quit);
-							 SDL_RenderCopy(renderer, tab_texture[17], NULL, &restart);
+							 
 						 }
 					 }
 				 }
+				 SDL_RenderCopy(renderer, tab_texture[10], NULL, &end);
+				 SDL_RenderCopy(renderer, tab_texture[12], NULL, &quit);
+				 SDL_RenderCopy(renderer, tab_texture[17], NULL, &restart);
 			 }
-			 SDL_RenderPresent(renderer);
+			 if (cpt == nbcasesm)
+			 {
+				 SDL_RenderCopy(renderer, tab_texture[16], NULL, &end);
+				 SDL_RenderCopy(renderer, tab_texture[12], NULL, &quit);
+				 SDL_RenderCopy(renderer, tab_texture[17], NULL, &restart);
+				 
+			 }
 		 }
 
 	 }
  }
 
-//pas touche
 void placeM(tab TM) {
 	int i, j;
 	int cm;
@@ -509,137 +529,7 @@ void placeM(tab TM) {
 		}
 	}
 }
-// à modifier
-void niveauDeJeu(tab TM, tab TJ) {
-	int niveau;
-	niveau = getInputInt("Quel niveau souhaitez-vous ? [1, 2, 3]", 1, 4);
 
-	switch (niveau) {
-	case 1:
-		MINE = 10;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
-		break;
-	case 2:
-		MINE = 20;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
-		break;
-	case 3:
-		MINE = 30;
-		printf("La difficulte est de %d et il y as %d mines dans tout le tableaux\n", niveau, MINE);
-		break;
-	}
-}
-
-void ClearInput()
-{
-	while (getchar() != '\n');
-}
-//ca va encore servir?
-int getInputInt(const char* message, int min, int max)
-{
-	int value;
-	int error;
-	do {
-		printf("%s", message);
-		error = scanf_s("%d", &value);
-		ClearInput();
-	} while ((error == 0) || (value < min) || (value >= max));
-	return value;
-}
-//ca va encore servir?
-char getInputChar(const char* message, const char* authorizedCharacter, int length)
-{
-	int error_scan;
-	int error_char;
-	char caract;
-
-	do {
-		printf("%s", message);
-		error_scan = scanf_s("%c", &caract);
-		ClearInput();
-
-		error_char = 0;
-		for (int i = 0; i < length; ++i) {
-			if (caract == authorizedCharacter[i]) {
-				error_char = 1;
-			}
-		}
-	} while ((error_scan == 0) || (error_char == 0));
-
-	return caract;
-}
-// prendre position clique au lieu de rentrer les coordonées
-void jeu(tab TM, tab TJ) {
-	int CL;
-	int CC;
-	char CD = 'c';
-	int perdu = -1;
-	int nbcasesm = N * N - MINE; // Nombre de cases sans mine
-
-	printf("\nJeu du demineur\n\n");
-
-	while ((perdu == -1)) {
-		//inutile
-		CD = getInputChar("Voulez vous jouer : c ou poser un drapeau : d ou retirer un drapeau : r -> ", "cdr", 3);
-		if (CD == 'd') {
-			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
-
-			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
-			if (TJ[CL][CC] == 'X') {
-				TJ[CL][CC] = 80;
-			}
-
-			printf("\n");
-			system("cls");
-
-			if (TJ[CL][CC] != X) {
-				printf("Vous avez deja rentre cette valeur.\n\n");
-			}
-		}
-		if (CD == 'r') {
-			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
-
-			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
-			if (TJ[CL][CC] == 80) {
-				TJ[CL][CC] = 88;
-			}
-
-
-			printf("\n");
-			system("cls");
-		}
-		if (CD == 'c') {
-			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
-
-			CC = getInputInt("Entrer le numero de la colonne : ", 0, N);
-			printf("\n");
-			system("cls");
-			if (TJ[CL][CC] != X && TJ[CL][CC] != 80) {
-				printf("Vous avez deja rentre cette valeur.\n\n");
-				continue;
-			}
-
-			if (TM[CL][CC] == M) {
-				perdu = 1; // VOUS AVEZ PERDU!
-				printf("C'est une mine :O\n\n");
-				break;
-			}
-			reavealCase(TM, TJ, CL, CC); // Recherche du nombre de mines aux alentours
-			if (cpt == nbcasesm)
-			{
-				perdu = 0;
-				printf("Vous avez gagne!\n\n");
-			}
-		}
-	}
-
-	if (perdu == 1) {
-		printf("Game Over\n\n");
-
-	}
-
-}
-//normalement c ok
 int isMine(tab T, int i, int j)
 {
 	if (i < 0 || i >= N)
@@ -653,7 +543,7 @@ int isMine(tab T, int i, int j)
 
 	return 1;
 }
-//ca aussi je pense 
+
 int getMineArround(tab TM, tab TJ, int i, int j)
 {
 	int mineCount = 48;
@@ -668,7 +558,7 @@ int getMineArround(tab TM, tab TJ, int i, int j)
 	mineCount += isMine(TM, i, j + 1);
 	return mineCount;
 }
-//à modifier (non du coup)
+
 void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour donc detruire autour du 0
 {
 	if (i < 0 || i >= N)
@@ -679,14 +569,16 @@ void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour don
 
 	if (TJ[i][j] != 'X')
 		return;
-
-	cpt++;
+	
+	
 	TJ[i][j] = getMineArround(TM, TJ, i, j);
-	if (TJ[i][j] != 48)
-		return;
 	if (TM[i][j] == M)
 		return;
-
+	cpt++;
+	if (TJ[i][j] != 48)
+		return;
+	
+	
 	reavealCase(TM, TJ, i - 1, j - 1);
 	reavealCase(TM, TJ, i - 1, j);
 	reavealCase(TM, TJ, i - 1, j + 1);
