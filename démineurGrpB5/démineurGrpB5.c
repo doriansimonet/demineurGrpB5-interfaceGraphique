@@ -1,4 +1,4 @@
- #include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
@@ -19,6 +19,7 @@ void func(a);
 void Ini(char a[N][N], char c[N][N]);
 void niveauDeJeu(tab, tab);
 void AfficheT(tab,tab, SDL_Renderer*, SDL_Texture*);
+void Jeu(tab, tab, SDL_Renderer*, SDL_Texture*);
 void placeM(tab);
 void jeu(tab, tab);
 void ClearInput();
@@ -54,7 +55,7 @@ int main()
 
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
-	SDL_Texture* texture_image, * texture_mine, * texture_un, * texture_deux, * texture_trois, * texture_quatre, * texture_cinq, * texture_six, * texture_sept, * texture_huit, * texture_drapeau = NULL;
+	SDL_Texture* texture_image, * texture_mine, * texture_win, * texture_hard, * texture_medium, * texture_easy, * texture_start, * texture_restart,* texture_quit, * texture_over,* texture_un, * texture_deux, * texture_trois, * texture_quatre, * texture_cinq, * texture_six, * texture_sept, * texture_huit, * texture_drapeau = NULL;
 	SDL_Surface* surface_huit = SDL_LoadBMP("src/Pixil-8.bmp");
 	SDL_Surface* surface_drapeau = SDL_LoadBMP("src/Pixil-drapeau.bmp");
 	SDL_Surface* surface_un = SDL_LoadBMP("src/Pixil-1.bmp");
@@ -65,10 +66,19 @@ int main()
 	SDL_Surface* surface_six = SDL_LoadBMP("src/Pixil-6.bmp");
 	SDL_Surface* surface_sept = SDL_LoadBMP("src/Pixil-7.bmp");
 	SDL_Surface* surface_mine = SDL_LoadBMP("src/Pixil-bombe.bmp");
+	SDL_Surface* surface_over = SDL_LoadBMP("src/gameOver.bmp");
+	SDL_Surface* surface_restart = SDL_LoadBMP("src/restart.bmp");
+	SDL_Surface* surface_quit = SDL_LoadBMP("src/quit.bmp");
+	SDL_Surface* surface_start = SDL_LoadBMP("src/start.bmp");
+	SDL_Surface* surface_easy = SDL_LoadBMP("src/easy.bmp");
+	SDL_Surface* surface_medium = SDL_LoadBMP("src/medium.bmp");
+	SDL_Surface* surface_hard = SDL_LoadBMP("src/hard.bmp");
+	SDL_Surface* surface_win = SDL_LoadBMP("src/win.bmp");
 	int statut = EXIT_FAILURE;
 	SDL_Event event;
 	SDL_bool quit = SDL_FALSE;
 	int x, y;
+	int boom;
 	Uint32 boutons;
 
 	tab TM; // Tableau des mines
@@ -115,6 +125,62 @@ int main()
 	if (NULL == texture_image)
 	{
 		fprintf(stderr, "Erreur SDL_CreateTexture : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_easy = SDL_CreateTextureFromSurface(renderer, surface_easy);
+	if (NULL == texture_easy)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_medium = SDL_CreateTextureFromSurface(renderer, surface_medium);
+	if (NULL == texture_medium)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_hard = SDL_CreateTextureFromSurface(renderer, surface_hard);
+	if (NULL == texture_hard)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_start = SDL_CreateTextureFromSurface(renderer, surface_start);
+	if (NULL == texture_start)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_quit = SDL_CreateTextureFromSurface(renderer, surface_quit);
+	if (NULL == texture_quit)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_restart = SDL_CreateTextureFromSurface(renderer, surface_restart);
+	if (NULL == texture_restart)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_over = SDL_CreateTextureFromSurface(renderer, surface_over);
+	if (NULL == texture_over)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
+		goto Quit;
+	}
+
+	texture_win = SDL_CreateTextureFromSurface(renderer, surface_win);
+	if (NULL == texture_win)
+	{
+		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
 		goto Quit;
 	}
 
@@ -187,7 +253,7 @@ int main()
 		fprintf(stderr, "Erreur SDL_CreateTextureFromSurface : %s", SDL_GetError());
 		goto Quit;
 	}
-	SDL_Texture* tab_texture[10] ;
+	SDL_Texture* tab_texture[18] ;
 	tab_texture[0] = texture_mine;
 	tab_texture[1] = texture_un;
 	tab_texture[2] = texture_deux;
@@ -198,15 +264,20 @@ int main()
 	tab_texture[7] = texture_sept;
 	tab_texture[8] = texture_huit;
 	tab_texture[9] = texture_drapeau;
-	srand((unsigned int)time(NULL));
-	Ini(TM, TJ);
-	AfficheT(TJ,TM, renderer, tab_texture);
-	placeM(TM); // Placement des mines (M)
+	tab_texture[10] = texture_over;
+	tab_texture[11] = texture_start;
+	tab_texture[12] = texture_quit;
+	tab_texture[13] = texture_easy;
+	tab_texture[14] = texture_medium;
+	tab_texture[15] = texture_hard;
+	tab_texture[16] = texture_win;
+	tab_texture[17] = texture_restart;
 	
+	Jeu(TM,TJ, renderer, tab_texture);
+	boom=0;
 	//boucle jeu
 	while (!quit)
 	{
-
 		
 		SDL_WaitEvent(&event);
 		if (event.type == SDL_QUIT)
@@ -221,79 +292,69 @@ int main()
 				printf("keysym A\n");
 		}
 		
+		
+		while (boom == 0) 
+		{
+			SDL_WaitEvent(&event);
+			SDL_PumpEvents();
+			boutons = SDL_GetMouseState(&x, &y);
+			if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (boutons & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+					for (int i = 0; i < 500; i += 50) {
+						for (int j = 0; j < 500; j += 50) {
+							if (i < x && x < i + 50 && j < y && y < j + 50) {
+								int abs = i / 50;
+								int ord = j / 50;
+								if (TJ[abs][ord] == X) {
+									TJ[abs][ord] = P;
+								}
+								else {
+									if (TJ[abs][ord] == P) {
+										TJ[abs][ord] = X;
+									}
 
-		SDL_PumpEvents();
-		boutons = SDL_GetMouseState(&x, &y);
-		if (boutons & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-			for (int i = 0; i < 500; i += 50) {
-				for (int j = 0; j < 500; j += 50) {
-					if (i < x && x < i + 50 && j < y && y < j + 50) {
-						int abs = i / 50;
-						int ord = j / 50;
-						if (TJ[abs][ord] == X) {
-							TJ[abs][ord] = P;
-						}
-						else {
-							if (TJ[abs][ord] == P) {
-								TJ[abs][ord] = X;
+
+								}
+								AfficheT(TJ, TM, renderer, tab_texture);
 							}
-						
-
 						}
-						AfficheT(TJ,TM, renderer,tab_texture);
+					}
+				}
+			}
+			if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (boutons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+					printf("Clic droit à la positions %d - %d\n", x, y);
+					for (int i = 0; i < 500; i += 50) {
+						for (int j = 0; j < 500; j += 50) {
+							if (i < x && x < i + 50 && j < y && y < j + 50) {
+								int abs = i / 50;
+								int ord = j / 50;
+								reavealCase(TM, TJ, abs, ord);
+								AfficheT(TJ, TM, renderer, tab_texture);
+								if (TM[abs][ord] == M) {
+									boom ++;
+								}
+							}
+						}
 					}
 				}
 			}
 		}
-					if (boutons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-						printf("Clic droit à la positions %d - %d\n", x, y);
-
-						for (int i = 0; i < 500; i += 50) {
-							for (int j = 0; j < 500; j += 50) {
-								if (i < x && x < i + 50 && j < y && y < j + 50) {
-									int abs = i / 50;
-									int ord = j / 50;
-									reavealCase(TM, TJ,abs, ord);
-									AfficheT(TJ,TM, renderer, tab_texture);
-									/*SDL_Rect dst = {i, j, 50, 50};
-									SDL_SetRenderTarget(renderer, texture_damier);
-									int terre = i - j;
-									if (terre < 0) {
-										terre = terre * (-1);
-									}
-									terre = (terre / 50);
-									if (terre % 2 == 1) {
-										SDL_SetRenderDrawColor(renderer, 249, 228, 183, 255);
-									}
-									else {
-										SDL_SetRenderDrawColor(renderer, 213, 186, 152, 255);
-									}
-									SDL_RenderClear(renderer);
-									SDL_SetRenderTarget(renderer, NULL);
-									SDL_QueryTexture(texture_damier, NULL, NULL, &dst.w, &dst.h);
-									SDL_RenderCopy(renderer, texture_damier, NULL, &dst);
-									SDL_RenderPresent(renderer);*/
-								}
-							}
-							SDL_Delay(20);
-						}
-					}
 	}
 
 
 
-				statut = EXIT_SUCCESS;
-				// fin de focntion
-			Quit:
-				/*if (NULL != texture_damier)
-					SDL_DestroyTexture(texture_damier);*/
-				if (NULL != renderer)
-					SDL_DestroyRenderer(renderer);
-				if (NULL != window)
-					SDL_DestroyWindow(window);
-				SDL_Quit();
-				return statut;
-			}
+
+statut = EXIT_SUCCESS;
+// fin de focntion
+Quit:
+	if (NULL != renderer)
+		SDL_DestroyRenderer(renderer);
+	if (NULL != window)
+		SDL_DestroyWindow(window);
+	SDL_Quit();
+	return statut;
+}
 
 
 
@@ -329,90 +390,105 @@ int main()
 	}
 }
 
-void AfficheT(tab T, tab TM, SDL_Renderer* renderer, SDL_Texture** tab_texture) {
-	int i, j;
-	int c = 0;
-	for (i = 0; i < 500; i+=50) {
-		for (j = 0; j < 500; j+=50) {
-			SDL_Rect img = { i,j,50,50 };
-			int abs = i / 50;
-			int ord = j / 50;
-			if (T[abs][ord] == X) {
-				int brique = i - j;
-				if (brique < 0) {
-					brique = brique * (-1);
-				}
-				brique = (brique / 50);
-				if (brique % 2 == 1) {
-					SDL_SetRenderDrawColor(renderer, 150, 250, 100, 255);
-				}
-				else {
-					SDL_SetRenderDrawColor(renderer, 120, 200, 50, 255);
-				}
-				SDL_Rect a = { i,j,50,50 };
-				SDL_RenderFillRect(renderer, &a);
-			}
+ void AfficheT(tab T, tab TM, SDL_Renderer* renderer, SDL_Texture** tab_texture) {
+	 int i, j;
+	 int c = 0;
+	 for (i = 0; i < 500; i += 50) {
+		 for (j = 0; j < 500; j += 50) {
+			 SDL_Rect img = { i,j,50,50 };
+			 SDL_Rect over = { 0,0,500,500 };
+			 SDL_Rect quit = { 350,400,125,125 };
+			 SDL_Rect restart = { 20,400,125,125 };
+			 int abs = i / 50;
+			 int ord = j / 50;
+			 if (T[abs][ord] == X) {
+				 int brique = i - j;
+				 if (brique < 0) {
+					 brique = brique * (-1);
+				 }
+				 brique = (brique / 50);
+				 if (brique % 2 == 1) {
+					 SDL_SetRenderDrawColor(renderer, 150, 250, 100, 255);
+				 }
+				 else {
+					 SDL_SetRenderDrawColor(renderer, 120, 200, 50, 255);
+				 }
+				 SDL_Rect a = { i,j,50,50 };
+				 SDL_RenderFillRect(renderer, &a);
+			 }
 
-			if (T[abs][ord] == 48 && TM[abs][ord]!=M) {
-				int zero = i - j;
-				if (zero < 0) {
-					zero = zero * (-1);
-				}
-				zero = (zero / 50);
-				if (zero % 2 == 1) {
-					SDL_SetRenderDrawColor(renderer, 249, 228, 183, 255);
-				}
-				else {
-					SDL_SetRenderDrawColor(renderer, 213, 186, 152, 255);
-				}
-				SDL_Rect a = { i,j,50,50 };
-				SDL_RenderFillRect(renderer, &a);
-			}
-			if (T[abs][ord] == P) {
-				SDL_RenderCopy(renderer, tab_texture[9], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 49 && TM[abs][ord]!=M) {
-				SDL_RenderCopy(renderer, tab_texture[1], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 50 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[2], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 51 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[3], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 52 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[4], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 53 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[5], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 54 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[6], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 55 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[7], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (T[abs][ord] == 56 && TM[abs][ord] != M) {
-				SDL_RenderCopy(renderer, tab_texture[8], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-			if (TM[abs][ord] == M && T[abs][ord]!=X &&T[abs][ord] != P) {
-				SDL_RenderCopy(renderer, tab_texture[0], NULL, &img);
-				SDL_RenderPresent(renderer);
-			}
-		}
-		SDL_RenderPresent(renderer);
-	}
+			 if (T[abs][ord] == 48 && TM[abs][ord] != M) {
+				 int zero = i - j;
+				 if (zero < 0) {
+					 zero = zero * (-1);
+				 }
+				 zero = (zero / 50);
+				 if (zero % 2 == 1) {
+					 SDL_SetRenderDrawColor(renderer, 249, 228, 183, 255);
+				 }
+				 else {
+					 SDL_SetRenderDrawColor(renderer, 213, 186, 152, 255);
+				 }
+				 SDL_Rect a = { i,j,50,50 };
+				 SDL_RenderFillRect(renderer, &a);
+			 }
+			 if (T[abs][ord] == P) {
+				 SDL_RenderCopy(renderer, tab_texture[9], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 49 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[1], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 50 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[2], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 51 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[3], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 52 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[4], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 53 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[5], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 54 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[6], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 55 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[7], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (T[abs][ord] == 56 && TM[abs][ord] != M) {
+				 SDL_RenderCopy(renderer, tab_texture[8], NULL, &img);
+				 SDL_RenderPresent(renderer);
+			 }
+			 if (TM[abs][ord] == M && T[abs][ord] != X && T[abs][ord] != P) {
+				 for (int i = 0; i < 500; i+=50) {
+					 for (int j = 0; j < 500; j+=50) {
+						 SDL_Rect mine = { i,j,50,50 };
+						 int absM = i / 50;
+						 int ordM = j / 50;
+						 if (TM[absM][ordM] == M) {
+							 T[absM][ordM] = M;
+							 SDL_RenderCopy(renderer, tab_texture[0], NULL, &mine);
+							 SDL_RenderCopy(renderer, tab_texture[10], NULL, &over);
+							 SDL_RenderCopy(renderer, tab_texture[12], NULL, &quit);
+							 SDL_RenderCopy(renderer, tab_texture[17], NULL, &restart);
+						 }
+					 }
+				 }
+			 }
+			 SDL_RenderPresent(renderer);
+		 }
 
-}
+	 }
+ }
 
 //pas touche
 void placeM(tab TM) {
@@ -503,6 +579,7 @@ void jeu(tab TM, tab TJ) {
 	printf("\nJeu du demineur\n\n");
 
 	while ((perdu == -1)) {
+		//inutile
 		CD = getInputChar("Voulez vous jouer : c ou poser un drapeau : d ou retirer un drapeau : r -> ", "cdr", 3);
 		if (CD == 'd') {
 			CL = getInputInt("\nEntrer le numero de la ligne : ", 0, N);
@@ -576,7 +653,7 @@ int isMine(tab T, int i, int j)
 
 	return 1;
 }
-//ca aussi je pense
+//ca aussi je pense 
 int getMineArround(tab TM, tab TJ, int i, int j)
 {
 	int mineCount = 48;
@@ -591,7 +668,7 @@ int getMineArround(tab TM, tab TJ, int i, int j)
 	mineCount += isMine(TM, i, j + 1);
 	return mineCount;
 }
-//à modifier
+//à modifier (non du coup)
 void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour donc detruire autour du 0
 {
 	if (i < 0 || i >= N)
@@ -607,6 +684,8 @@ void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour don
 	TJ[i][j] = getMineArround(TM, TJ, i, j);
 	if (TJ[i][j] != 48)
 		return;
+	if (TM[i][j] == M)
+		return;
 
 	reavealCase(TM, TJ, i - 1, j - 1);
 	reavealCase(TM, TJ, i - 1, j);
@@ -618,4 +697,11 @@ void reavealCase(tab TM, tab TJ, int i, int j)//Il n'y a pas de mines autour don
 	reavealCase(TM, TJ, i + 1, j - 1);
 	reavealCase(TM, TJ, i + 1, j);
 	reavealCase(TM, TJ, i + 1, j + 1);
+}
+
+void Jeu (tab TM,tab TJ, SDL_Renderer*renderer, SDL_Texture* tab_texture){
+	srand((unsigned int)time(NULL));
+	Ini(TM, TJ);
+	AfficheT(TJ, TM, renderer, tab_texture);
+	placeM(TM); // Placement des mines (M)
 }
